@@ -21,6 +21,15 @@
 
 </div>
 
+## Modified by Mosaic
+
+This is Studio Mosaic's fork of [frappe/crm](https://github.com/frappe/crm), published as the
+source of the modified CRM we run (AGPL-3.0). The `mocca` branch is upstream `main` at a pinned
+commit plus our patches: the `crm_contact_tabs` hook, which lets installed apps add tabs to the
+contact page (see [docs/contact-tabs.md](docs/contact-tabs.md)). The same patches are proposed
+upstream from the [`feat/pluggable-contact-tabs`](https://github.com/Mosaicstg/crm/tree/feat/pluggable-contact-tabs)
+branch. Repository: https://github.com/Mosaicstg/crm
+
 ## Frappe CRM
 
 Frappe CRM is a simple, affordable, open-source CRM tool designed for modern sales teams with unlimited users. Frappe CRM is crafted for providing a great user experience, packed with features for core CRM activities helping you build strong customer relationships while keeping things clean and organised.
