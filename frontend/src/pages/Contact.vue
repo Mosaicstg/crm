@@ -130,7 +130,7 @@
           class="group flex items-center gap-2 border-b border-transparent py-2.5 text-base text-ink-gray-5 duration-300 ease-in-out hover:text-ink-gray-9"
           :class="{ 'text-ink-gray-9': selected }"
         >
-          <component :is="tab.icon" v-if="tab.icon" class="h-5" />
+          <Icon v-if="tab.icon" :icon="tab.icon" class="h-5" />
           {{ __(tab.label) }}
           <Badge
             class="group-hover:bg-surface-gray-10"
@@ -151,7 +151,29 @@
           :columns="columns"
           :options="{ selectable: false, showTooltip: false }"
         />
-        <EmptyState v-if="!rows.length" :icon="tab.icon" name="Deals" />
+        <EmptyState
+          v-if="tab.label === 'Deals' && !rows.length"
+          :icon="tab.icon"
+          name="Deals"
+        />
+        <ContactTabListView
+          v-else-if="tab.extension && contactTabs.states[tab.name]?.rows.length"
+          class="mt-4"
+          :rows="contactTabs.states[tab.name].rows"
+          :columns="tab.columns"
+          :total-count="contactTabs.states[tab.name].totalCount"
+          :loading="contactTabs.states[tab.name].loading"
+          :doctype="tab.doctype"
+          @load-more="contactTabs.loadMore(tab.name)"
+        />
+        <EmptyState
+          v-else-if="
+            tab.extension && contactTabs.states[tab.name]?.totalCount === 0
+          "
+          :icon="tab.icon"
+          :name="tab.label"
+          description=""
+        />
       </template>
     </Tabs>
   </div>
@@ -179,9 +201,11 @@ import PhoneIcon from '@/components/Icons/PhoneIcon.vue'
 import CameraIcon from '@/components/Icons/CameraIcon.vue'
 import DealsIcon from '@/components/Icons/DealsIcon.vue'
 import DealsListView from '@/components/ListViews/DealsListView.vue'
+import ContactTabListView from '@/components/ListViews/ContactTabListView.vue'
 import CustomActions from '@/components/CustomActions.vue'
 import { validateIsImageFile, setupCustomizations } from '@/utils'
 import { useContactFields } from '@/composables/useContactFields'
+import { useContactTabs } from '@/composables/useContactTabs'
 import { timestampCell } from '@/composables/useTimelinePreferences'
 import { getView } from '@/utils/view'
 import { useDocument } from '@/data/document'
@@ -299,13 +323,17 @@ function changeContactImage(file) {
 }
 
 const tabIndex = ref(0)
-const tabs = [
-  {
-    label: 'Deals',
-    icon: DealsIcon,
-    count: computed(() => deals.data?.length),
-  },
-]
+const dealsTab = {
+  label: 'Deals',
+  icon: DealsIcon,
+  count: computed(() => deals.data?.length),
+}
+
+// Tabs from the `crm_contact_tabs` hook of installed apps, after Deals
+const activeTabName = ref(null)
+const contactTabs = useContactTabs(props.contactId, activeTabName)
+const tabs = computed(() => [dealsTab, ...contactTabs.tabs.value])
+watch(tabIndex, (index) => (activeTabName.value = tabs.value[index]?.name))
 
 const deals = createResource({
   url: 'crm.api.contact.get_linked_deals',
